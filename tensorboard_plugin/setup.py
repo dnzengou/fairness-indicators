@@ -1,4 +1,4 @@
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,29 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+
 from setuptools import find_packages
 from setuptools import setup
+
+
+def select(package_name, *, default, github_master=None):
+  """Select dependency string based on TFX_DEPENDENCY_SELECTOR env var."""
+  selector = os.environ.get('TFX_DEPENDENCY_SELECTOR')
+  if selector == 'UNCONSTRAINED':
+    return package_name
+  elif selector == 'GITHUB_MASTER' and github_master is not None:
+    return package_name + github_master
+  else:
+    return package_name + default
 
 REQUIRED_PACKAGES = [
     'protobuf>=3.6.0,<4',
     'tensorboard>=2.3.0,<3',
     'tensorflow>=2.3.0,<3',
-    'tensorflow-model-analysis>=0.23,<0.24',
+    select('tensorflow-model-analysis',
+           default='>=0.23,<0.24',
+           github_master='@git+https://github.com/tensorflow/model-analysis@master'),  # pylint: disable=line-too-long
 ]
 
 with open('README.md', 'r', encoding='utf-8') as fh:

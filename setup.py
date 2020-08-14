@@ -1,4 +1,4 @@
-# Copyright 2019 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,13 +14,30 @@
 # ==============================================================================
 """Setup to install Fairness Indicators."""
 
+import os
+
 from setuptools import find_packages
 from setuptools import setup
 
+
+def select(package_name, *, default, github_master=None):
+  """Select dependency string based on TFX_DEPENDENCY_SELECTOR env var."""
+  selector = os.environ.get('TFX_DEPENDENCY_SELECTOR')
+  if selector == 'UNCONSTRAINED':
+    return package_name
+  elif selector == 'GITHUB_MASTER' and github_master is not None:
+    return package_name + github_master
+  else:
+    return package_name + default
+
 REQUIRED_PACKAGES = [
     'tensorflow>=1.15.2,!=2.0.*,!=2.1.*,!=2.2.*,<3',
-    'tensorflow-data-validation>=0.23,<0.24',
-    'tensorflow-model-analysis>=0.23,<0.24',
+    select('tensorflow-data-validation',
+           default='>=0.23,<0.24',
+           github_master='@git+https://github.com/tensorflow/data-validation@master'),  # pylint: disable=line-too-long
+    select('tensorflow-model-analysis',
+           default='>=0.23,<0.24',
+           github_master='@git+https://github.com/tensorflow/model-analysis@master'),  # pylint: disable=line-too-long
     'witwidget>=1.4.4,<2',
 ]
 
